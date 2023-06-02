@@ -4,6 +4,14 @@ import angle
 from floor import  hand_pos
 import time
 
+from pyfirmata2 import Arduino
+
+board = Arduino('COM4')
+#board = Arduino(Arduino.AUTODETECT)
+pin =[5,6,7,8,9,10,11,12,13] #4,3
+
+nled = {1,2,3,4,5,6,7,8,9} #10,11
+
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -14,13 +22,17 @@ lineType = cv2.LINE_AA
 
 floor = set()
 chfloor = set()
+
+filfloor = [0]
+num = int()
+
 passtime = 0
 
 with mp_hands.Hands(
     max_num_hands=1,
     model_complexity=0,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5) as hands:
+    min_detection_confidence=0.9,
+    min_tracking_confidence=0.9) as hands:
 
     while (cap.isOpened()):
         ret, img = cap.read()
@@ -51,16 +63,25 @@ with mp_hands.Hands(
                     finger_angle = angle.hand_angle(finger_points) 
                     #print(finger_angle)                   
                     text = hand_pos(finger_angle)          
-                    cv2.putText(img, str(text)+'F', (30,120), fontFace, 5, (255,255,255), 10, lineType) 
-
-            floor.add(hand_pos(finger_angle))
+                    cv2.putText(img, str(text)+'F', (30,120), fontFace, 5, (255,255,255), 10, lineType)
+            
             passtime += 1
-            if passtime == 50:
-                floor.remove(hand_pos(finger_angle))
-                print("delete")
-                cap.release()
-                time.sleep(2)
-                passtime = 0  
+            if(hand_pos(finger_angle) != 0):
+                if(passtime<30):
+                    filfloor.append(hand_pos(finger_angle))   
+                    num = max(filfloor,key=filfloor.count)
+                if passtime == 50:
+                    floor.discard(hand_pos(finger_angle))
+                    #print("delete")
+                    cap.release()
+                    time.sleep(2)
+                    passtime = 0  
+
+            if(hand_pos(finger_angle) == 0):
+                floor.add(num)
+                filfloor.clear()
+                passtime = 0
+
             if (0 in floor or None in floor):
                 floor.discard(0)
                 floor.discard(None)
@@ -70,13 +91,18 @@ with mp_hands.Hands(
                 chfloor = floor.copy()
                 print(chfloor)
         else:
-            passtime = 0          
-        #print(passtime) 
+            passtime = 0
+
+        for led in chfloor:
+            board.digital[pin[led-1]].write(0)
+        for l in nled.difference(chfloor):
+            board.digital[pin[l-1]].write(1)
 
         cv2.imshow('sx', img)
         if(not cap.isOpened()):
             cap = cv2.VideoCapture(0) 
         if cv2.waitKey(5) == ord('q'):
             break
+
 cap.release()
 cv2.destroyAllWindows()
