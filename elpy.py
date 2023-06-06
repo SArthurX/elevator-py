@@ -6,15 +6,15 @@ import time
 
 from pyfirmata2 import Arduino
 
-board = Arduino('COM4')
-#board = Arduino(Arduino.AUTODETECT)
+#board = Arduino('COM4')
+board = Arduino(Arduino.AUTODETECT)
 pin =[5,6,7,8,9,10,11,12,13] #4,3
 
 nled = {1,2,3,4,5,6,7,8,9} #10,11
 
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_hands = mp.solutions.hands
+drawingModule = mp.solutions.drawing_utils
+drawingModule_styles = mp.solutions.drawing_styles
+handsModule = mp.solutions.hands
 
 cap = cv2.VideoCapture(0)            
 fontFace = cv2.FONT_HERSHEY_SIMPLEX  
@@ -28,7 +28,7 @@ num = int()
 
 passtime = 0
 
-with mp_hands.Hands(
+with handsModule.Hands(
     max_num_hands=1,
     model_complexity=0,
     min_detection_confidence=0.9,
@@ -50,6 +50,8 @@ with mp_hands.Hands(
         results = hands.process(imgRGB)                
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
+                drawingModule.draw_landmarks(img, hand_landmarks, handsModule.HAND_CONNECTIONS)
+
                 finger_points = []            
                 for i,lm in enumerate(hand_landmarks.landmark):
                     x = float(lm.x*w)
@@ -61,10 +63,15 @@ with mp_hands.Hands(
 
                 if finger_points:
                     finger_angle = angle.hand_angle(finger_points) 
-                    #print(finger_angle)                   
-                    text = hand_pos(finger_angle)          
-                    cv2.putText(img, str(text)+'F', (30,120), fontFace, 5, (255,255,255), 10, lineType)
-            
+                    #print(finger_angle)
+                    if hand_pos(finger_angle) == 0:                   
+                        cv2.putText(img, 'Confirm', (30,120), fontFace, 2, (255,255,255), 5, lineType)
+                    elif hand_pos(finger_angle) == 44:                   
+                        cv2.putText(img, 'Delete All', (30,120), fontFace, 2, (255,255,255), 5, lineType)
+                    elif hand_pos(finger_angle) != None:
+                        text = hand_pos(finger_angle)          
+                        cv2.putText(img, str(text)+'F', (30,120), fontFace, 5, (255,255,255), 10, lineType)
+
             passtime += 1
             if(hand_pos(finger_angle) != 0):
                 if(passtime<30):
@@ -72,10 +79,9 @@ with mp_hands.Hands(
                     num = max(filfloor,key=filfloor.count)
                 if passtime == 50:
                     floor.discard(hand_pos(finger_angle))
-                    #print("delete")
                     cap.release()
                     time.sleep(2)
-                    passtime = 0  
+                    passtime = 0
 
             if(hand_pos(finger_angle) == 0):
                 floor.add(num)
@@ -86,19 +92,24 @@ with mp_hands.Hands(
                 floor.discard(0)
                 floor.discard(None)
                 passtime = 0 
-
+                
+            if (44 in floor):
+                floor.clear()
+                filfloor.clear()
+                passtime = 0 
             if(chfloor != floor):
                 chfloor = floor.copy()
                 print(chfloor)
         else:
+            filfloor.clear()
             passtime = 0
-
+            
         for led in chfloor:
             board.digital[pin[led-1]].write(0)
         for l in nled.difference(chfloor):
             board.digital[pin[l-1]].write(1)
 
-        cv2.imshow('sx', img)
+        #cv2.imshow('sx', img)
         if(not cap.isOpened()):
             cap = cv2.VideoCapture(0) 
         if cv2.waitKey(5) == ord('q'):
