@@ -8,7 +8,7 @@ def vector_2d_angle(v1, v2):
     try:
         angle_= math.degrees(math.acos((v1_x*v2_x+v1_y*v2_y)/(((v1_x**2+v1_y**2)**0.5)*((v2_x**2+v2_y**2)**0.5))))
     except:
-        angle_ = 180
+        angle_ = 180        
     return angle_
 
 def hand_angle(hand_):

@@ -28,9 +28,9 @@ def hand_pos(finger_angle):
     elif f1>=50 and f2>=50 and f3<50 and f4>=50 and f5>=50:
         return 44
     #elif f1<50 and f2<50 and f3>=50 and f4>=50 and f5<50:
-    #    return 69 #open
+    #    return 45 #open
     #elif f1>=50 and f2<50 and f3>=50 and f4>=50 and f5<50:
-    #    return 96 #close
+    #    return 46 #close
     #elif f1<50 and f2>=50 and f3>=50 and f4>=50 and f5>=50:
     #    return 12 #
 
@@ -38,7 +38,5 @@ def hand_pos(finger_angle):
     #    return 'ok'
     #elif f1<50 and f2>=50 and f3<50 and f4<50 and f5<50:
     #    return 'ok'
-    #elif f1>=50 and f2>=50 and f3>=50 and f4>=50 and f5<50:
-    #    return 'pink'
     #else:
     #    return ''
