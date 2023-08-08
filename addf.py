@@ -2,6 +2,7 @@ import tkinter as tk
 from hand import hand_pos, update_hand_pos
 from PIL import Image, ImageTk
 
+
 class HandGestureApp:
     def __init__(self, root):
         self.root = root
@@ -11,12 +12,12 @@ class HandGestureApp:
 
         self.gesture = [0, 0, 0, 0, 0]
 
-        image_path = "image.png"  # 請替換成你的圖片檔案路徑
+        image_path = "image.png"  
         image = Image.open(image_path)
         image = image.resize((640, 480), Image.ANTIALIAS)
         self.photo = ImageTk.PhotoImage(image)
 
-        # 建立 Label 放置圖片在整個界面上方
+        
         self.image_label = tk.Label(root, image=self.photo)
         self.image_label.grid(row=0, columnspan=5, padx=5, pady=5)
 
@@ -52,9 +53,12 @@ class HandGestureApp:
         
         update_hand_pos(self.gesture_data)
         print("Gesture saved!")
-
+        root.quit()
+        
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = HandGestureApp(root)
     root.mainloop()
+
+

@@ -1,8 +1,13 @@
 def update_hand_pos(gesture_data):
     with open("hand.py", "a") as file:  # 使用 'a' 模式以附加方式打開檔案
         for idx, gesture in gesture_data.items():
+            for i,x in enumerate (gesture):
+                if x == 0:
+                    gesture[i]=">"
+                elif x == 1:
+                    gesture[i]="<"
             gesture_values = " ".join(map(str, gesture))
-            file.write(f"    elif f1 == {gesture[0]} and f2 == {gesture[1]} and f3 == {gesture[2]} and f4 == {gesture[3]} and f5 == {gesture[4]}:\n")
+            file.write(f"    elif f1 {gesture[0]} 50 and f2 {gesture[1]} 50 and f3 {gesture[2]} 50 and f4 {gesture[3]} 50 and f5 {gesture[4]} 50:\n")
             file.write(f"        return {idx}\n")
 
 def hand_pos(finger_angle):
@@ -34,5 +39,5 @@ def hand_pos(finger_angle):
         return 9
     elif f1 >= 50 and f2 >= 50 and f3 < 50 and f4 >= 50 and f5 >= 50:
         return 44
-    elif f1 == 1 and f2 == 1 and f3 == 0 and f4 == 1 and f5 == 1:
-        return 89
+    elif f1 <= 50 and f2 <= 50 and f3 >= 50 and f4 >= 50 and f5 <= 50:
+        return 101

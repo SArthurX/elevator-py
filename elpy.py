@@ -1,12 +1,17 @@
 import cv2
 import mediapipe as mp
 import angle
-from floor import  hand_pos
+from hand import hand_pos
 import time
 from pyfirmata2 import Arduino
+import addf
 
-#board = Arduino('COM5')
-board = Arduino(Arduino.AUTODETECT)
+import os
+import sys
+import subprocess
+
+board = Arduino('COM5')
+#board = Arduino(Arduino.AUTODETECT)
 pin =[5,6,7,8,9,10,11,12,13]
 
 nled = {1,2,3,4,5,6,7,8,9}
@@ -30,6 +35,8 @@ num = int()
 
 passtime = 0
 
+
+
 try:
     print("Welcome to Contactless Pandemic Prevention Elevator System !")
     with handsModule.Hands(
@@ -40,7 +47,7 @@ try:
 
         while (cap.isOpened()):
             ret, img = cap.read()
-
+            from hand import hand_pos
             x_l, x_r = 0, -300
             y_u, y_d = 0, -100
             img = img[y_u:y_d, x_l:x_r]
@@ -68,6 +75,8 @@ try:
                             cv2.putText(img, 'Confirm', (30,120), fontFace, 2, (255,255,255), 5, lineType)
                         elif hand_pos(finger_angle) == 44:                   
                             cv2.putText(img, 'Delete All', (30,120), fontFace, 2, (255,255,255), 5, lineType)
+                        elif hand_pos(finger_angle) == 101:                   
+                            cv2.putText(img, 'Add MOD', (30,120), fontFace, 2, (255,255,255), 5, lineType)
                         elif hand_pos(finger_angle) != None:
                             text = hand_pos(finger_angle)          
                             cv2.putText(img, str(text)+'F', (30,120), fontFace, 5, (255,255,255), 10, lineType)
@@ -85,7 +94,7 @@ try:
                         time.sleep(2)
                         passtime = 0
 
-                if(hand_pos(finger_angle) == 0):
+                if (hand_pos(finger_angle) == 0):
                     floor.add(num)
                     filfloor.clear()
                     passtime = 0
@@ -93,15 +102,20 @@ try:
                 if (0 in floor or None in floor):
                     floor.discard(0)
                     floor.discard(None)
-                    passtime = 0 
-                    
+                    passtime = 0  
                 if (44 in floor):
                     floor.clear()
                     filfloor.clear()
                     passtime = 0 
-                if(chfloor != floor):
+                if (101 in floor):
+                    floor.discard(101)
+                    passtime = 0 
+                    exec(open("addf.py").read())
+
+                if (chfloor != floor):
                     chfloor = floor.copy()
                     print(chfloor)
+
             else:
                 filfloor.clear()
                 passtime = 0
@@ -119,6 +133,5 @@ try:
                 break
 except KeyboardInterrupt:
     print("Elevator System END !")
-
 cap.release()
 cv2.destroyAllWindows()
